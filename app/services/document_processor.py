@@ -31,8 +31,8 @@ def process_pdf_from_path(path: str) -> List[str]:
 def _chunk_text(text: str) -> List[str]:
     """Splits a long text into smaller, manageable chunks."""
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=500,
+        chunk_overlap=100,
         length_function=len
     )
     return text_splitter.split_text(text)
