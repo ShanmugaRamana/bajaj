@@ -16,4 +16,4 @@ services:
       - key: OPENROUTER_API_KEY
         fromSecret: true
       - key: LLM_MODEL
-        value: "google/gemini-flash-1.5"
+        value: "mistralai/mistral-nemo"
