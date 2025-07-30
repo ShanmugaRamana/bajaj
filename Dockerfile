@@ -16,9 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app code after dependencies
 COPY . .
 
-# Precompute knowledge (optional, can skip for smaller image)
-RUN python build_base_knowledge.py
-
 EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
