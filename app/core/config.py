@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     BEARER_TOKEN: str
     OPENROUTER_API_KEY: str
-    LLM_MODEL: str = "meta-llama/llama-3-70b-instruct"
+    LLM_MODEL: str = "mistralai/mistral-nemo"
 
     model_config = SettingsConfigDict(env_file=".env")
 

@@ -62,7 +62,7 @@ async def run_submission(request: APIRequest):
 
     # Asynchronously process all questions
     async def process_question(question):
-        relevant_chunks = vector_store.search_faiss_index(index, chunks, question, k=5)
+        relevant_chunks = vector_store.search_faiss_index(index, chunks, question, k=7)
         return await llm_service.get_answer_from_llm(question, relevant_chunks)
 
     tasks = [process_question(q) for q in request.questions]
