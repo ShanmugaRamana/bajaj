@@ -1,2 +1,19 @@
+# Environment variables
 .env
-venv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated vector store (will be built on the server)
+app/data/vector_store/
+
+# IDE and OS files
+.vscode/
+.idea/
+*.DS_Store
+
+# Python virtual environment
+venv/
+*.venv/
+env/
