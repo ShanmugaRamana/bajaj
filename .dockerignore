@@ -12,3 +12,6 @@ venv/
 build/
 dist/
 *.ipynb
+*.bin
+*.pt
+.cache/
