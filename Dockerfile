@@ -1,27 +1,24 @@
-# Use official Python image
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set working directory
+# Set working dir
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y build-essential
+# Pre-install packages only needed for some wheels
+RUN apt-get update && apt-get install -y gcc && apt-get clean
 
-# Copy all project files
+# Install only dependencies first
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy app code after dependencies
 COPY . .
 
-# Install Python dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# Run your custom script to prepare embeddings or preload data
+# Precompute knowledge (optional, can skip for smaller image)
 RUN python build_base_knowledge.py
 
-# Expose port
 EXPOSE 8000
 
-# Start FastAPI with Uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

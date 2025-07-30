@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.git
+*.md
+venv/
+.env
+.idea/
+*.log
+build/
+dist/
+*.ipynb
