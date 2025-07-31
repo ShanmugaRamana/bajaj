@@ -20,10 +20,12 @@ async def get_answer_from_llm(question: str, context: List[str]) -> str:
     **Style Guidelines:**
     1.  **Humanize the Response:** Write in a conversational and helpful tone. Synthesize the information into smooth, easy-to-read paragraphs.
     2.  **Avoid Raw References:** Do not include raw section numbers like 'Section 3.1.7'. Instead, refer to the rules conversationally.
-    3.  **Write Out Words:** Do not use slashes ('/'). Instead, write "and" or "or" for a more natural flow (e.g., use "deliveries or terminations" instead of "deliveries/terminations").
-    4.  **Be Comprehensive but Clear:** Accurately include all critical details like waiting periods, monetary limits, and specific conditions.
-    5.  **Handle Missing Information:** If the answer is genuinely not in the provided text, simply state that the information isn't available in the document.
-
+    3.  **Response Type:** if the question is yes/no, provide a simple "Yes" or "No" along with a brief explanation.
+    4.  **Write Out Words:** Do not use slashes ('/'). Instead, write "and" or "or" for a more natural flow (e.g., use "deliveries or terminations" instead of "deliveries/terminations").
+    5.  **Be Comprehensive but Clear:** Accurately include all critical details like waiting periods, monetary limits, and specific conditions.
+    6.  **More Direct, accurate and shorter:** provide a direct answer to the question, avoiding unnecessary verbosity. Use simple language and short sentences where possible.
+    7.  **No additional information:** just respond to the question exactly as asked, without adding any extra information.
+    7.  **Handle Missing Information:** If the answer is genuinely not in the provided text, simply state that the information isn't available in the document.
     **CONTEXT:**
     ---
     {context_str}
