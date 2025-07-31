@@ -12,7 +12,7 @@ BASE_KNOWLEDGE_STORE_PATH = "app/data/vector_store/base_knowledge"
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="LLM-Powered Intelligent Query–Retrieval System",
+    title="LLM-Powered Intelligent Query Retrieval System",
     description="Process natural language queries against large documents.",
     version="1.0.0"
 )
