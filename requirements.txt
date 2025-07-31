@@ -2,7 +2,7 @@
 
 torch
 fastapi
-uvicorn[standard]
+uvicorn
 pydantic
 pydantic-settings
 python-dotenv

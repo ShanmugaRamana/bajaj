@@ -1,1 +1,1 @@
-python build_base_knowledge.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+web: python build_base_knowledge.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
