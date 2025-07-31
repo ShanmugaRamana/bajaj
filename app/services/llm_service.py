@@ -25,7 +25,8 @@ async def get_answer_from_llm(question: str, context: List[str]) -> str:
     5.  **Be Comprehensive but Clear:** Accurately include all critical details like waiting periods, monetary limits, and specific conditions.
     6.  **More Direct, accurate and shorter:** provide a direct answer to the question, avoiding unnecessary verbosity. Use simple language and short sentences where possible.
     7.  **No additional information:** just respond to the question exactly as asked, without adding any extra information.
-    7.  **Handle Missing Information:** If the answer is genuinely not in the provided text, simply state that the information isn't available in the document.
+    8.  **Handle Missing Information:** If the answer is genuinely not in the provided text, simply state that the information isn't available in the document.
+    
     **CONTEXT:**
     ---
     {context_str}
