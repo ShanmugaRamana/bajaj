@@ -72,4 +72,4 @@ async def run_submission(request: APIRequest):
 
 @app.get("/", include_in_schema=False)
 def root():
-    return {"message": "Intelligent Query Retrieval System is running."}
+    return {"message": "Intelligent Query Retrieval System is running successfully."}
