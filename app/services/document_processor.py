@@ -1,32 +1,10 @@
 # app/services/document_processor.py
 import httpx
-from pypdf import PdfReader
+import hashlib
 from io import BytesIO
+from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
-
-def process_pdf_from_url(url: str) -> List[str]:
-    """Downloads and processes a PDF from a URL."""
-    try:
-        response = httpx.get(url, follow_redirects=True, timeout=30.0)
-        response.raise_for_status()
-        pdf_file = BytesIO(response.content)
-        reader = PdfReader(pdf_file)
-        text = "".join(page.extract_text() for page in reader.pages if page.extract_text())
-        return _chunk_text(text)
-    except httpx.RequestError as e:
-        raise Exception(f"Failed to download document: {e}")
-    except Exception as e:
-        raise Exception(f"Failed to process PDF from URL: {e}")
-
-def process_pdf_from_path(path: str) -> List[str]:
-    """Processes a PDF from a local file path."""
-    try:
-        reader = PdfReader(path)
-        text = "".join(page.extract_text() for page in reader.pages if page.extract_text())
-        return _chunk_text(text)
-    except Exception as e:
-        raise Exception(f"Failed to process PDF from path {path}: {e}")
 
 def _chunk_text(text: str) -> List[str]:
     """Splits a long text into smaller, manageable chunks."""
@@ -36,3 +14,30 @@ def _chunk_text(text: str) -> List[str]:
         length_function=len
     )
     return text_splitter.split_text(text)
+
+def process_and_hash_pdf_from_path(path: str) -> tuple[list[str], str | None]:
+    """Processes a local PDF, returning chunks and a content hash."""
+    try:
+        with open(path, "rb") as f:
+            pdf_bytes = f.read()
+            content_hash = hashlib.sha256(pdf_bytes).hexdigest()
+        
+        reader = PdfReader(BytesIO(pdf_bytes))
+        text = "".join(page.extract_text() for page in reader.pages if page.extract_text())
+        chunks = _chunk_text(text)
+        return chunks, content_hash
+    except Exception as e:
+        print(f"Failed to process or hash PDF from path {path}: {e}")
+        return [], None
+
+def get_content_hash_from_url(url: str) -> tuple[str | None, bytes | None]:
+    """Downloads a document and returns its content hash and bytes."""
+    try:
+        response = httpx.get(url, follow_redirects=True, timeout=30.0)
+        response.raise_for_status()
+        pdf_bytes = response.content
+        content_hash = hashlib.sha256(pdf_bytes).hexdigest()
+        return content_hash, pdf_bytes
+    except Exception as e:
+        print(f"Failed to download or hash document from URL {url}: {e}")
+        return None, None
