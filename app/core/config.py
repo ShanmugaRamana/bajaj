@@ -3,8 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     BEARER_TOKEN: str
-    OPENROUTER_API_KEY: str
-    LLM_MODEL: str = "openrouter/horizon-beta"
+    GOOGLE_API_KEY: str  # Changed to Google's key
+    LLM_MODEL: str = "gemini-1.5-flash" # Changed to a Gemini model name
 
     model_config = SettingsConfigDict(env_file=".env")
 
