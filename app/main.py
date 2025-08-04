@@ -2,18 +2,17 @@
 import os
 import asyncio
 import pickle
-from io import BytesIO
+import hashlib
 from fastapi import FastAPI, Depends, HTTPException, status
 from app.core.security import verify_token
 from app.schemas.api_request import APIRequest
 from app.schemas.api_response import APIResponse
 from app.services import document_processor, vector_store, llm_service
-from pypdf import PdfReader
 
 # --- KNOWLEDGE BASE AND CACHE SETUP ---
 BASE_KNOWLEDGE_STORE_PATH = "app/data/vector_store/base_knowledge"
 HASH_STORE_PATH = "app/data/vector_store/base_knowledge_hashes.pkl"
-base_index, base_chunks, base_hashes = None, None, set()
+base_index, base_chunks, text_hashes = None, None, set()
 
 app = FastAPI(
     title="LLM-Powered Intelligent Query Retrieval System",
@@ -24,21 +23,16 @@ app = FastAPI(
 @app.on_event("startup")
 def load_base_knowledge():
     """Load pre-built knowledge base and hashes on startup."""
-    global base_index, base_chunks, base_hashes
+    global base_index, base_chunks, text_hashes
     try:
         if os.path.exists(f"{BASE_KNOWLEDGE_STORE_PATH}.faiss"):
             base_index, base_chunks = vector_store.load_faiss_index(BASE_KNOWLEDGE_STORE_PATH)
             print("✅ Base knowledge vector store loaded successfully.")
-        else:
-            print("⚠️ Warning: Base knowledge vector store not found.")
 
         if os.path.exists(HASH_STORE_PATH):
             with open(HASH_STORE_PATH, "rb") as f:
-                base_hashes = pickle.load(f)
-            print(f"✅ Loaded {len(base_hashes)} base document hashes for caching.")
-        else:
-            print("⚠️ Warning: Base document hashes not found.")
-
+                text_hashes = pickle.load(f)
+            print(f"✅ Loaded {len(text_hashes)} base document text hashes for caching.")
     except Exception as e:
         print(f"❌ Error during startup loading: {e}")
 
@@ -50,41 +44,32 @@ def load_base_knowledge():
     tags=["Query & Retrieval"]
 )
 async def run_submission(request: APIRequest):
-    """
-    Processes questions against a specified document or the base knowledge.
-    Uses caching to speed up processing for known documents.
-    """
     index, chunks = None, None
 
     if request.documents:
-        # --- CACHING LOGIC ---
-        content_hash, pdf_bytes = document_processor.get_content_hash_from_url(str(request.documents))
-        
-        if content_hash and content_hash in base_hashes:
+        pdf_bytes = document_processor.download_pdf_from_url(str(request.documents))
+        if not pdf_bytes:
+            raise HTTPException(status_code=400, detail="Could not download document from URL.")
+
+        # --- TEXT-BASED CACHING LOGIC ---
+        extracted_text = document_processor.extract_text_from_bytes(pdf_bytes)
+        if not extracted_text:
+            raise HTTPException(status_code=400, detail="Could not extract text from the provided document.")
+
+        content_hash = hashlib.sha256(extracted_text.encode('utf-8')).hexdigest()
+
+        if content_hash in text_hashes:
             print("✅ Cache hit. Using pre-built base knowledge index.")
             index, chunks = base_index, base_chunks
         else:
-            # --- REAL-TIME PROCESSING FOR NEW DOCUMENTS ---
             print("⚠️ Cache miss. Processing new document in real-time.")
-            if not pdf_bytes:
-                raise HTTPException(status_code=400, detail="Could not download document from URL.")
-            try:
-                reader = PdfReader(BytesIO(pdf_bytes))
-                text = "".join(page.extract_text() for page in reader.pages if page.extract_text())
-                doc_chunks = document_processor._chunk_text(text)
-                
-                if not doc_chunks:
-                    raise HTTPException(status_code=400, detail="Could not extract text from the provided document.")
-                
-                index, chunks = vector_store.create_faiss_index_from_chunks(doc_chunks)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to process new document: {str(e)}")
+            doc_chunks = document_processor._chunk_text(extracted_text)
+            index, chunks = vector_store.create_faiss_index_from_chunks(doc_chunks)
     else:
-        # Use the pre-loaded base knowledge if no document is provided
         print("ℹ️ No document URL provided. Using base knowledge index.")
         index, chunks = base_index, base_chunks
 
-    if index is None or chunks is None:
+    if index is None:
         raise HTTPException(status_code=503, detail="Knowledge base is not available.")
 
     # Asynchronously process all questions
